@@ -1599,7 +1599,7 @@ finish_co_await_expr (location_t kw, tree expr)
     return error_mark_node;
 
   /* The current function has now become a coroutine, if it wasn't already.  */
-  DECL_COROUTINE_P (current_function_decl) = 1;
+  DECL_COROUTINE_P (current_function_decl) = !processing_template_decl;
 
   /* This function will appear to have no return statement, even if it
      is declared to return non-void (most likely).  This is correct - we
@@ -1686,7 +1686,7 @@ finish_co_yield_expr (location_t kw, tree expr)
     return error_mark_node;
 
   /* The current function has now become a coroutine, if it wasn't already.  */
-  DECL_COROUTINE_P (current_function_decl) = 1;
+  DECL_COROUTINE_P (current_function_decl) = !processing_template_decl;
 
   /* This function will appear to have no return statement, even if it
      is declared to return non-void (most likely).  This is correct - we
@@ -1778,7 +1778,7 @@ finish_co_return_stmt (location_t kw, tree expr)
 
   /* The current function has now become a coroutine, if it wasn't
      already.  */
-  DECL_COROUTINE_P (current_function_decl) = 1;
+  DECL_COROUTINE_P (current_function_decl) = !processing_template_decl;
 
   /* This function will appear to have no return statement, even if it
      is declared to return non-void (most likely).  This is correct - we
