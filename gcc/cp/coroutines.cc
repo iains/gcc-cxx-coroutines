@@ -2070,7 +2070,7 @@ create_named_label_with_ctx (location_t loc, const char *name, tree ctx)
   tree lab_id = get_identifier (name);
   tree lab = define_label (loc, lab_id);
   DECL_CONTEXT (lab) = ctx;
-  DECL_ARTIFICIAL (lab) = true;
+//  DECL_ARTIFICIAL (lab) = true;
   TREE_USED (lab) = true;
   return lab;
 }
