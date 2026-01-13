@@ -2609,6 +2609,16 @@ comdat_linkage (tree decl)
 	  if (tree post = DECL_POST_FN (decl))
 	    cgraph_node::get_create (post)->add_to_same_comdat_group (n);
 	}
+      else if (HAVE_COMDAT_GROUP && flag_coroutines
+	       && DECL_DECLARES_FUNCTION_P (decl) && !DECL_EXTERNAL (decl)
+	       && DECL_RAMP_P (decl))
+	{
+	  symtab_node *n = symtab_node::get (decl);
+	  if (tree actor = DECL_ACTOR_FN (decl))
+	    cgraph_node::get_create (actor)->add_to_same_comdat_group (n);
+	  if (tree destroy = DECL_DESTROY_FN (decl))
+	    cgraph_node::get_create (destroy)->add_to_same_comdat_group (n);
+	}
     }
   else if (TREE_CODE (decl) == FUNCTION_DECL
 	   || (VAR_P (decl) && DECL_ARTIFICIAL (decl)))

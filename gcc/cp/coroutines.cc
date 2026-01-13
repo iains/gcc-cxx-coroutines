@@ -34,6 +34,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "hash-map.h"
 #include "coroutines.h"
 #include "contracts.h"
+#include "cgraph.h"
 
 /* ================= Debug. ================= */
 
@@ -4430,7 +4431,7 @@ coro_build_actor_or_destroy_function (tree orig, tree fn_type,
 {
   location_t loc = DECL_SOURCE_LOCATION (orig);
   tree fn
-    = build_lang_decl (FUNCTION_DECL, copy_node (DECL_NAME (orig)), fn_type);
+    = build_lang_decl (FUNCTION_DECL, DECL_NAME (orig), fn_type);
 
   /* Allow for locating the ramp (original) function from this one.  */
   coro_set_ramp_function (fn, orig);
@@ -4441,25 +4442,32 @@ coro_build_actor_or_destroy_function (tree orig, tree fn_type,
   DECL_INITIAL (fn) = error_mark_node;
   DECL_COROUTINE_P (fn) = true;
 
+  gcc_checking_assert (!DECL_PENDING_INLINE_P (orig));
+  if (HAVE_COMDAT_GROUP && !DECL_WEAK (orig) && DECL_ONE_ONLY (orig))
+    {
+      symtab_node *n = symtab_node::get (orig);
+      cgraph_node::get_create (fn)->add_to_same_comdat_group (n);
+    }
+
   tree id = get_identifier ("frame_ptr");
   tree fp = build_lang_decl (PARM_DECL, id, coro_frame_ptr);
   DECL_ARTIFICIAL (fp) = true;
   DECL_CONTEXT (fp) = fn;
   DECL_ARG_TYPE (fp) = type_passed_as (coro_frame_ptr);
   DECL_ARGUMENTS (fn) = fp;
+  DECL_INTERFACE_KNOWN (fn) = true;
 
-  /* Copy selected attributes from the original function.  */
+  /* Copy selected properties from the original function.  */
   TREE_USED (fn) = TREE_USED (orig);
   if (DECL_SECTION_NAME (orig))
     set_decl_section_name (fn, orig);
-  /* Copy any alignment that the FE added.  */
+  /* Copy any specific added alignment  */
   if (DECL_ALIGN (orig))
     SET_DECL_ALIGN (fn, DECL_ALIGN (orig));
-  /* Copy any alignment the user added.  */
   DECL_USER_ALIGN (fn) = DECL_USER_ALIGN (orig);
-  /* Apply attributes from the original fn.  */
+  /* Apply attributes from the original fn...  */
   DECL_ATTRIBUTES (fn) = copy_list (DECL_ATTRIBUTES (orig));
-  /* but we do not want ones for contracts.  */
+  /* ... but we do not want ones for contracts.  */
   remove_contract_attributes (fn);
 
   /* A void return.  */
